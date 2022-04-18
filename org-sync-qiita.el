@@ -12,29 +12,25 @@
 
 (require 'org-sync-qiita-api)
 
-;; ;;; Requests
-;; (defun org-sync-qiita--api-items-post ()
-;;   (deferred:$
-;;     (request-deferred "https://qiita.com/api/v2/items"
-;;                       :type "POST"
-;;                       :headers
-;;                       `(("Authorization"
-;;                          . ,(concat "Bearer " (org-sync-qiita--access-token)))
-;;                         ("Content-Type" . "application/json"))
-;;                       :data
-;;                       (json-encode
-;;                        '(("body" . "# Exampleさんぷる")
-;;                          ("tags"
-;;                           . [(("name" . "Emacs"))
-;;                              (("name" . "Org"))])
-;;                          ("title" . "てすとTest from Emacs 5")
-;;                          ("private" . t)))
-;;                       :parser 'json-read
-;;                       :encoding 'utf-8)
-;;     (deferred:nextc it
-;;       (lambda (response)
-;;         (message "Got: %S" (request-response-data response))))))
+(defun org-sync-qiita--make-tags (tags)
+  (if (null tags) (error "Qiita needs at least one tag"))
+  (let* ((v (make-vector (length tags) nil)))
+    (dotimes (i (length v))
+      (setf (aref v i)
+            `(("name" . ,(nth i tags)))))
+    v))
 
+(defun org-sync-qiita--post-article (title body tags private)
+  (org-sync-qiita--api-items-post
+   title
+   body
+   (org-sync-qiita--make-tags tags)
+   private
+   ;; TODO: add call back to add Qiita ID to the Org headline
+   ;; TODO: add Qiita ID to args
+   ))
 
-  (provide 'org-sync-qiita)
+;; (org-sync-qiita--post-article "これがタイトル公開" "# そして\nぼでぃ\n" '("TAG") nil)
+;; bind C-c 9
+(provide 'org-sync-qiita)
 ;;; org-sync-qiita.el ends here

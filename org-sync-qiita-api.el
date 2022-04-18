@@ -47,7 +47,8 @@
 ;;   (org-sync-qiita--access-token)
 
 ;;; Requests
-(defun org-sync-qiita--api-items-post ()
+(defun org-sync-qiita--api-items-post (title body tags private)
+  (if (eq private nil) (setq private json-false))
   (deferred:$
     (request-deferred "https://qiita.com/api/v2/items"
                       :type "POST"
@@ -57,12 +58,10 @@
                         ("Content-Type" . "application/json"))
                       :data
                       (json-encode
-                       '(("body" . "# Exampleさんぷる")
-                         ("tags"
-                          . [(("name" . "Emacs"))
-                             (("name" . "Org"))])
-                         ("title" . "てすとTest from Emacs 5")
-                         ("private" . t)))
+                       `(("body" . ,body)
+                         ("tags" . ,tags)
+                         ("title" . ,title)
+                         ("private" . ,private)))
                       :parser 'json-read
                       :encoding 'utf-8)
     (deferred:nextc it
@@ -70,7 +69,17 @@
         (message "Got: %S" (request-response-data response))))))
 
 ;; Test Case:
-;; (org-sync-qiita--api-items-post)
+
+;; (org-sync-qiita--api-items-post "てすとTest from Emacs 7"
+;;                                 "# はじめに\n# つぎに\n"
+;;                                 '[(("name" . "Emacs")) (("name" . "org-mode"))])
+
+;; (json-encode `(("private" . ,json-false)))
+;; "{\"private\":false}"
+;; "{\"private\":\"false\"}"
+;; "{\"private\":\"f\"}"
+;; "{\"private\":null}"
+;; "{\"private\":true}"
 
   (provide 'org-sync-qiita-api)
 ;;; org-sync-qiita-api.el ends here
