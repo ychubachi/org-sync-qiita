@@ -76,10 +76,10 @@
 ;;   "Development use"
 ;;   (message "Got: id=%S" (assoc 'id (cdr response))))
 
-;; (org-sync-qiita--api-items-post "てすとTest from Emacs 9"
+;; (org-sync-qiita--api-items-post "てすとTest from Emacs 20公開"
 ;;                                 "# はじめに\n# つぎに\n"
 ;;                                 '[(("name" . "Emacs")) (("name" . "org-mode"))]
-;;                                 t
+;;                                 nil
 ;;                                 #'org-sync-qiita--call-back)
 
 (defun org-sync-qiita--api-items-patch (id title body tags private &optional cbfunc)
@@ -92,12 +92,13 @@
                          . ,(concat "Bearer " (org-sync-qiita--access-token)))
                         ("Content-Type" . "application/json"))
                       :data
-                      (let ((data
-                             `(("body" . ,body)
-                               ("tags" . ,tags)
-                               ("title" . ,title)
-                               ("private" . ,private))))
-                        (json-encode data))
+                      (let ((data (json-encode
+                                   `(("body" . ,body)
+                                     ("tags" . ,tags)
+                                     ("title" . ,title)
+                                     ("private" . ,private)
+                                     ))))
+                        data)
                       :parser 'json-read
                       :encoding 'utf-8)
     (deferred:nextc it
@@ -107,11 +108,14 @@
 
 ;; Test Case:
 
-;; (org-sync-qiita--api-items-patch "9175aaaf466f5a77acfb"
-;;                                  "Emacsから投稿した記事 12"
+;; (org-sync-qiita--api-items-patch "3e7728c0bc5b244548c4"
+;;                                  "このIDはとっとこう 14限定公開にもどしたい"
 ;;                                  "# この記事のID\ndeab1f72742467c87ec3\n# つぎに\n"
 ;;                                  '[(("name" . "Emacs")) (("name" . "org-mode"))]
 ;;                                  t nil)
+
+;; (setq request-log-level 'debug)
+;; (setq request-message-level 'debug)
 
 (defun org-sync-qiita--api-items-delete (id &optional cbfunc)
   (deferred:$
