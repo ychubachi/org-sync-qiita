@@ -47,7 +47,7 @@
 ;;   (org-sync-qiita--access-token)
 
 ;;; Requests
-(defun org-sync-qiita--api-items-post (title body tags private)
+(defun org-sync-qiita--api-items-post (title body tags private &optional cbfunc)
   (if (eq private nil) (setq private json-false))
   (deferred:$
     (request-deferred "https://qiita.com/api/v2/items"
@@ -57,29 +57,78 @@
                          . ,(concat "Bearer " (org-sync-qiita--access-token)))
                         ("Content-Type" . "application/json"))
                       :data
-                      (json-encode
-                       `(("body" . ,body)
-                         ("tags" . ,tags)
-                         ("title" . ,title)
-                         ("private" . ,private)))
+                      (let ((data
+                             `(("body" . ,body)
+                               ("tags" . ,tags)
+                               ("title" . ,title)
+                               ("private" . ,private))))
+                        (json-encode data))
                       :parser 'json-read
                       :encoding 'utf-8)
     (deferred:nextc it
       (lambda (response)
-        (message "Got: %S" (request-response-data response))))))
+        (if cbfunc
+            (funcall cbfunc (request-response-data response)))))))
 
 ;; Test Case:
 
-;; (org-sync-qiita--api-items-post "てすとTest from Emacs 7"
+;; (defun org-sync-qiita--call-back (response)
+;;   "Development use"
+;;   (message "Got: id=%S" (assoc 'id (cdr response))))
+
+;; (org-sync-qiita--api-items-post "てすとTest from Emacs 9"
 ;;                                 "# はじめに\n# つぎに\n"
-;;                                 '[(("name" . "Emacs")) (("name" . "org-mode"))])
+;;                                 '[(("name" . "Emacs")) (("name" . "org-mode"))]
+;;                                 t
+;;                                 #'org-sync-qiita--call-back)
 
-;; (json-encode `(("private" . ,json-false)))
-;; "{\"private\":false}"
-;; "{\"private\":\"false\"}"
-;; "{\"private\":\"f\"}"
-;; "{\"private\":null}"
-;; "{\"private\":true}"
+(defun org-sync-qiita--api-items-patch (id title body tags private &optional cbfunc)
+  (if (eq private nil) (setq private json-false) (setq private t))
+  (deferred:$
+    (request-deferred (format "https://qiita.com/api/v2/items/%s" id)
+                      :type "PATCH"
+                      :headers
+                      `(("Authorization"
+                         . ,(concat "Bearer " (org-sync-qiita--access-token)))
+                        ("Content-Type" . "application/json"))
+                      :data
+                      (let ((data
+                             `(("body" . ,body)
+                               ("tags" . ,tags)
+                               ("title" . ,title)
+                               ("private" . ,private))))
+                        (json-encode data))
+                      :parser 'json-read
+                      :encoding 'utf-8)
+    (deferred:nextc it
+      (lambda (response)
+        (if cbfunc
+            (funcall cbfunc (request-response-data response)))))))
 
-  (provide 'org-sync-qiita-api)
+;; Test Case:
+
+;; (org-sync-qiita--api-items-patch "9175aaaf466f5a77acfb"
+;;                                  "Emacsから投稿した記事 12"
+;;                                  "# この記事のID\ndeab1f72742467c87ec3\n# つぎに\n"
+;;                                  '[(("name" . "Emacs")) (("name" . "org-mode"))]
+;;                                  t nil)
+
+(defun org-sync-qiita--api-items-delete (id &optional cbfunc)
+  (deferred:$
+    (request-deferred (format "https://qiita.com/api/v2/items/%s" id)
+                      :type "DELETE"
+                      :headers
+                      `(("Authorization"
+                         . ,(concat "Bearer " (org-sync-qiita--access-token)))
+                        ("Content-Type" . "application/json"))
+                      :parser 'json-read
+                      :encoding 'utf-8)
+    (deferred:nextc it
+      (lambda (response)
+        (if cbfunc
+            (funcall cbfunc (request-response-data response)))))))
+
+;; (org-sync-qiita--api-items-delete "1a46875af4df6a7a1539")
+
+(provide 'org-sync-qiita-api)
 ;;; org-sync-qiita-api.el ends here
