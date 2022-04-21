@@ -22,6 +22,19 @@
             `(("name" . ,(nth i tags)))))
     v))
 
+(defun org-sync-qiita--tags-to-strings (tags)
+  "[((name . \"Emacs\") (versions . []))((name . \"Org\") (versions . []))]
+Emacs,Org"
+  (message "tags=%s" tags)
+  (let (str)
+    (dotimes (i (length tags))
+      (let ((s (cdr (car (aref tags i)))))
+        (if (> i 0)
+            (setq str  (format "%s,%s" str s))
+          (setq str  (format "%s" s)))))
+    str))
+
+;;
 (defun org-sync-qiita--create-article (title body tags private)
   (org-sync-qiita--api-items-post
    title
@@ -70,7 +83,8 @@
     (let ((private (cdr (assoc 'private response))))
       (if (eq private :json-false) (setq private "false") (setq private "true"))
       (org-entry-put nil "QIITA-PRIVATE" private)))
-  ;; (org-entry-put nil "QIITA-TAGS" (cdr (assoc 'private response)))
+  (org-entry-put nil "QIITA-TAGS" (org-sync-qiita--tags-to-strings
+                                   (cdr (assoc 'tags response))))
   (message "org-sync-qiita: Properties updated"))
 
 ;; (org-sync-qiita--api-items-post "てすとTest from Emacs 9"
