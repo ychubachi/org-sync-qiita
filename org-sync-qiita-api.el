@@ -62,6 +62,7 @@
                                ("tags" . ,tags)
                                ("title" . ,title)
                                ("private" . ,private))))
+                        (message "JSON=%s" (json-encode data))
                         (json-encode data))
                       :parser 'json-read
                       :encoding 'utf-8)

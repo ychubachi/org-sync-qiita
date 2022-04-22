@@ -13,16 +13,18 @@
 (require 'request-deferred)
 (require 'ox-qmd)
 
+
+;; TODO: delete
 (defun org-sync-qiita--make-tags (tags)
   "Make qiita tags array for its API. TAGS is a list of strings."
   (if (null tags) (error "Qiita needs at least one tag"))
-  (let* ((v (make-vector (length tags) nil)))
+  (let ((v (make-vector (length tags) nil)))
     (dotimes (i (length v))
       (setf (aref v i)
             `(("name" . ,(nth i tags)))))
     v))
 
-(defun org-sync-qiita--tags-to-strings (tags)
+(defun org-sync-qiita--tags-to-string (tags)
   "[((name . \"Emacs\") (versions . []))((name . \"Org\") (versions . []))]
 Emacs,Org"
   (message "tags=%s" tags)
@@ -34,12 +36,24 @@ Emacs,Org"
           (setq str  (format "%s" s)))))
     str))
 
+(defun org-sync-qiita--string-to-tags (str)
+  (let* ((tags (split-string str " *, *"))
+         (v (make-vector (length tags) nil)))
+    (dotimes (i (length v))
+      (setf (aref v i)
+            `(("name" . ,(nth i tags)))))
+    v))
+
+;; (org-sync-qiita--strings-to-tags "hoge ,aho baka, unko , neko")
+;; [(("name" . "hoge")) (("name" . "aho baka")) (("name" . "unko")) (("name" . "neko"))]
+;; ("hoge" "aho baka" "unko" "neko")
+
 ;;
 (defun org-sync-qiita--create-article (title body tags private)
   (org-sync-qiita--api-items-post
    title
    body
-   (org-sync-qiita--make-tags tags)
+   tags
    private
    #'org-sync-qiita--put-properties))
 
@@ -51,7 +65,7 @@ Emacs,Org"
    id
    title
    body
-   (org-sync-qiita--make-tags tags)
+   tags
    private
    #'org-sync-qiita--put-properties))
 
@@ -83,8 +97,9 @@ Emacs,Org"
     (let ((private (cdr (assoc 'private response))))
       (if (eq private :json-false) (setq private "false") (setq private "true"))
       (org-entry-put nil "QIITA-PRIVATE" private)))
-  (org-entry-put nil "QIITA-TAGS" (org-sync-qiita--tags-to-strings
+  (org-entry-put nil "QIITA-TAGS" (org-sync-qiita--tags-to-string
                                    (cdr (assoc 'tags response))))
+  (org-entry-put nil "QIITA-URL" (cdr (assoc 'url response)))
   (message "org-sync-qiita: Properties updated"))
 
 ;; (org-sync-qiita--api-items-post "てすとTest from Emacs 9"
@@ -103,25 +118,36 @@ Emacs,Org"
 ;;   )
 
 (defun org-sync-qiita-at-point ()
+  "Orgで書いた記事をQiitaに投稿します。更新もできます。"
   (interactive)
   (save-excursion
     (let ((id (org-entry-get nil "QIITA-ID" t)))
       ;; go to headline which has the GIITA-ID
       (if id (goto-char org-entry-property-inherited-from))
-      (let ((title   (org-entry-get nil "ITEM"))
-            (private (org-entry-get nil "QIITA-PRIVATE"))
-            (body    (org-sync-qiita-qmd))
-            (tags    '("TAG")))
-        (if (equal private "false") (setq private nil) (setq private t))
+      (let* ((title   (org-entry-get nil "ITEM"))
+             (body    (org-sync-qiita-qmd)))
+        (if (equal body "\n")
+            (error "記事の本文をお書きください"))
         (cond
          (id
+          (let* ((private (org-entry-get nil "QIITA-PRIVATE"))
+                 (tags    (org-entry-get nil "QIITA-TAGS")))
+            (if (or (not tags) (equal tags ""))
+                (error "QIITA-TAGSに一つ以上のTAGが必要です")
+              (setq tags (org-sync-qiita--string-to-tags tags)))
+            (if (equal private "false") (setq private nil) (setq private t))
           ;; Update the article
-          (org-sync-qiita--update-article id title body tags private))
+            (org-sync-qiita--update-article id title body
+                                            tags
+                                            private)))
          (t
           ;; Create a new article as private
-          (org-sync-qiita--create-article title body tags t)))))))
+          (org-sync-qiita--create-article title body
+                                          (org-sync-qiita--string-to-tags "Org")
+                                          t)))))))
 
 (defun org-sync-qiita-unsync-at-point ()
+  "Orgで書いた記事をQiitaから削除します"
   (interactive)
   (let ((id (org-entry-get nil "QIITA-ID")))
     (org-sync-qiita--delete-article id))
