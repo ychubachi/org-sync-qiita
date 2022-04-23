@@ -81,6 +81,17 @@ init.elに次の設定を行ってください。MELPA等に登録していな�
 #+RESULTS:
 : org-sync-qiita
 
+* カスタマイズ
+
+暗号化したアクセストークンは次のファイルに保存されます。
+
+#+begin_example
+~/.emacs.d/qiita.plstore
+#+end_example
+
+変更したい場合、変数 ~org-sync-qiita-access-token-file~ を変えてください。
+
 * 制限事項
 - 一度公開したものを限定公開には戻せません（APIの制約）。
 - twitterへの自動投稿には対応していません。
+- 画像には対応していません。
