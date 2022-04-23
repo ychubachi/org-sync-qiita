@@ -1,2 +1,4 @@
+[[https://coveralls.io/github/ychubachi/org-sync-gtasks][https://coveralls.io/repos/github/ychubachi/org-sync-qiita/badge.svg?branch=main]]
+
 * org-sync-qiita
 Emacs Orgで作成した記事を一瞬でQiitaに投稿するコマンド
