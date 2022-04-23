@@ -1,4 +1,42 @@
 [[https://coveralls.io/github/ychubachi/org-sync-qiita][https://coveralls.io/repos/github/ychubachi/org-sync-qiita/badge.svg?branch=main]]
 
 * org-sync-qiita
-Emacs Orgで作成した記事を一瞬でQiitaに投稿するコマンド
+Emacs Orgで作成した記事を一瞬でQiitaに投稿するコマンドです。
+
+* 設定方法
+
+init.elに次の設定を行ってください。MELPA等に登録していないので、GitHubから
+ダウンロードしてください。
+
+** [[https://github.com/raxod502/straight.el][straight.el]] をお使いの場合
+
+#+begin_src emacs-lisp
+  (straight-use-package '(org-sync-qiita :type git :host github
+                                         :repo "ychubachi/org-sync-qiita"))
+#+end_src
+
+#+RESULTS:
+: t
+
+** [[https://github.com/conao3/leaf.el][leaf.el]] と組み合わせるなら
+
+#+begin_src emacs-lisp
+  (leaf org-sync-qiita
+    :straight (org-sync-qiita :type git :host github
+                              :repo "ychubachi/org-sync-qiita"))
+#+end_src
+
+#+RESULTS:
+: org-sync-qiita
+
+* 簡単な使い方
+** 事前準備
+  こちらのページからアクセストークンを取得します。
+  - [[https://qiita.com/settings/tokens/new][アクセストークンの発行]]
+
+  手順は次のとおりです。
+  - 説明に「org-sync-qiita」と書く
+  - スコープは「read_qiita」と「write_qiita」
+  - 「発行する」ボタンを押す
+  - アクセストークンが表示されるので、 +復活の呪文のごとく紙にメモする+
+      クリップボードにコピーしましょう。
