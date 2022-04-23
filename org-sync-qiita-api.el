@@ -30,6 +30,7 @@
 
 ;; Test Case:
 ;; (org-sync-qiita--get-access-token)
+;; "abc...123"
 
 (defun org-sync-qiita--access-token ()
   "Get the qiita access token from the plstore file."
@@ -47,6 +48,14 @@
 ;;   (org-sync-qiita--access-token)
 
 ;;; Requests
+(defun org-sync-qiita-api--call-back (response cbfunc)
+  "General call back function"
+  (if-let ((e (request-response-error-thrown response)))
+            (message "Qiitaがエラーを返しました: %s\n%s" e
+                     (request-response-data response))
+          (if cbfunc
+            (funcall cbfunc (request-response-data response)))))
+
 (defun org-sync-qiita--api-items-post (title body tags private &optional cbfunc)
   (if (eq private nil) (setq private json-false))
   (deferred:$
@@ -68,19 +77,17 @@
                       :encoding 'utf-8)
     (deferred:nextc it
       (lambda (response)
-        (if cbfunc
-            (funcall cbfunc (request-response-data response)))))))
+        (org-sync-qiita-api--call-back response cbfunc)))))
 
 ;; Test Case:
-
 ;; (defun org-sync-qiita--call-back (response)
 ;;   "Development use"
 ;;   (message "Got: id=%S" (assoc 'id (cdr response))))
 
-;; (org-sync-qiita--api-items-post "てすとTest from Emacs 20公開"
+;; (org-sync-qiita--api-items-post "APIを利用した開発中（すぐ削除します）"
 ;;                                 "# はじめに\n# つぎに\n"
 ;;                                 '[(("name" . "Emacs")) (("name" . "org-mode"))]
-;;                                 nil
+;;                                 t
 ;;                                 #'org-sync-qiita--call-back)
 
 (defun org-sync-qiita--api-items-patch (id title body tags private &optional cbfunc)
@@ -104,13 +111,12 @@
                       :encoding 'utf-8)
     (deferred:nextc it
       (lambda (response)
-        (if cbfunc
-            (funcall cbfunc (request-response-data response)))))))
+        (org-sync-qiita-api--call-back response cbfunc)))))
 
 ;; Test Case:
 
-;; (org-sync-qiita--api-items-patch "3e7728c0bc5b244548c4"
-;;                                  "このIDはとっとこう 14限定公開にもどしたい"
+;; (org-sync-qiita--api-items-patch "00cf2c7c8fd06155468a"
+;;                                  "APIを利用した開発中（すぐ削除します）"
 ;;                                  "# この記事のID\ndeab1f72742467c87ec3\n# つぎに\n"
 ;;                                  '[(("name" . "Emacs")) (("name" . "org-mode"))]
 ;;                                  t nil)
@@ -130,10 +136,9 @@
                       :encoding 'utf-8)
     (deferred:nextc it
       (lambda (response)
-        (if cbfunc
-            (funcall cbfunc (request-response-data response)))))))
+        (org-sync-qiita-api--call-back response cbfunc)))))
 
-;; (org-sync-qiita--api-items-delete "1a46875af4df6a7a1539")
+;; (org-sync-qiita--api-items-delete "00cf2c7c8fd06155468a")
 
 (provide 'org-sync-qiita-api)
 ;;; org-sync-qiita-api.el ends here

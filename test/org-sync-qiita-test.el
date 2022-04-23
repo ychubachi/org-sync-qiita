@@ -6,19 +6,29 @@
 (require 'org)
 
 ;;; Tests
-(ert-deftest org-sync-qiita-test--make-tags ()
-  (let (tags)
-    (setq tags '())
-    (should-error (org-sync-qiita--make-tags tags))
-    (setq tags '("A"))
-    (should (equal
-             (org-sync-qiita--make-tags tags)
-             '[(("name" . "A"))]))
-    (setq tags '("A" "B"))
-    (should (equal
-         (org-sync-qiita--make-tags tags)
-         '[(("name" . "A")) (("name" . "B"))]))))
+;; (ert-deftest org-sync-qiita-test--make-tags ()
+;;   (let (tags)
+;;     (setq tags '())
+;;     (should-error (org-sync-qiita--make-tags tags))
+;;     (setq tags '("A"))
+;;     (should (equal
+;;              (org-sync-qiita--make-tags tags)
+;;              '[(("name" . "A"))]))
+;;     (setq tags '("A" "B"))
+;;     (should (equal
+;;          (org-sync-qiita--make-tags tags)
+;;          '[(("name" . "A")) (("name" . "B"))]))))
 
+(ert-deftest org-sync-qiita-test--string-to-tags ()
+  (should (equal
+           [(("name" . "A"))]
+           (org-sync-qiita--string-to-tags "A")))
+  (should (equal
+           [(("name" . "A"))(("name" . "B"))]
+           (org-sync-qiita--string-to-tags "A,B")))
+  (should (equal
+           [(("name" . "A"))(("name" . "B"))(("name" . "C"))]
+           (org-sync-qiita--string-to-tags "A, B , C"))))
 
 ;;; Org related tests
 
@@ -37,39 +47,45 @@ Ref: https://github.com/bzg/org-mode/blob/6d73cd34a07796c33f9435bfc8c9a19e67656c
 	 (kill-buffer buffer)
          (delete-file file)))))
 
-(ert-deftest org-sync-qiita-test--put-article-id ()
-  (should (string=
-           "* headline
-:PROPERTIES:
-:QIITA-ID: SOMEQIITAID
-:END:
-"
-           (org-sync-qiita-test--with-org-buffer
-            "* headline\n"
-            (org-sync-qiita--put-article-id '((id . "SOMEQIITAID")))
-            (buffer-string)))))
 
 
-(ert-deftest org-sync-qiita-test--find-ancestor ()
-  (should (string=
-           "SOMEQIITAID"
-           (org-sync-qiita-test--with-org-buffer
-            "* headline
-:PROPERTIES:
-:QIITA-ID: SOMEQIITAID
-:END:
-"
-            (org-sync-qiita--find-ancestor))))
-  (should (string=
-           "SOMEQIITAID"
-           (org-sync-qiita-test--with-org-buffer
-            "* headline
-:PROPERTIES:
-:QIITA-ID: SOMEQIITAID
-:END:
-** headline 2
-"
-            (insert "|")
-            (message "%s" (buffer-string))
-            (org-sync-qiita--find-ancestor)))))
+
+;; (ert-deftest org-sync-qiita-test--put-article-id ()
+;;   (should (string=
+;;            "* headline
+;; :PROPERTIES:
+;; :QIITA-ID: SOMEQIITAID
+;; :END:
+;; "
+;;            (org-sync-qiita-test--with-org-buffer
+;;             "* headline\n"
+;;             (org-sync-qiita--put-article-id '((id . "SOMEQIITAID")))
+;;             (buffer-string)))))
+
+
+
+;; (ert-deftest org-sync-qiita-test--find-ancestor ()
+;;   (should (string=
+;;            "SOMEQIITAID"
+;;            (org-sync-qiita-test--with-org-buffer
+;;             "* headline
+;; :PROPERTIES:
+;; :QIITA-ID: SOMEQIITAID
+;; :END:
+;; "
+;;             (org-sync-qiita--find-ancestor))))
+;;   (should (string=
+;;            "SOMEQIITAID"
+;;            (org-sync-qiita-test--with-org-buffer
+;;             "* headline
+;; :PROPERTIES:
+;; :QIITA-ID: SOMEQIITAID
+;; :END:
+;; ** headline 2
+;; "
+;;             (insert "|")
+;;             (message "%s" (buffer-string))
+;;             (org-sync-qiita--find-ancestor)))))
+
+(provide 'org-sync-qiita)
 ;;; org-sync-qiita-test.el ends here

@@ -15,10 +15,10 @@
 
 
 ;; TODO: delete
-(defun org-sync-qiita--make-tags (tags)
-  "Make qiita tags array for its API. TAGS is a list of strings."
-  (if (null tags) (error "Qiita needs at least one tag"))
-  (let ((v (make-vector (length tags) nil)))
+
+(defun org-sync-qiita--string-to-tags (str)
+  (let* ((tags (split-string str " *, *"))
+         (v (make-vector (length tags) nil)))
     (dotimes (i (length v))
       (setf (aref v i)
             `(("name" . ,(nth i tags)))))
@@ -35,18 +35,6 @@ Emacs,Org"
             (setq str  (format "%s,%s" str s))
           (setq str  (format "%s" s)))))
     str))
-
-(defun org-sync-qiita--string-to-tags (str)
-  (let* ((tags (split-string str " *, *"))
-         (v (make-vector (length tags) nil)))
-    (dotimes (i (length v))
-      (setf (aref v i)
-            `(("name" . ,(nth i tags)))))
-    v))
-
-;; (org-sync-qiita--strings-to-tags "hoge ,aho baka, unko , neko")
-;; [(("name" . "hoge")) (("name" . "aho baka")) (("name" . "unko")) (("name" . "neko"))]
-;; ("hoge" "aho baka" "unko" "neko")
 
 ;;
 (defun org-sync-qiita--create-article (title body tags private)

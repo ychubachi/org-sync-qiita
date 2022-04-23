@@ -3,6 +3,6 @@
 
 (require 'undercover)
 (setq undercover-force-coverage t)
-(undercover "org-sync-gtasks.el" (:report-format 'simplecov)
+(undercover "org-sync-qiita.el" (:report-format 'simplecov)
             (:send-report nil))
 ;;; usdercover-simplecov.el ends here

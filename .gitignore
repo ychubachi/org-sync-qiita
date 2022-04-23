@@ -1,3 +1,4 @@
 *~
 /.cask/
 /Gemfile.lock
+/coverage/
