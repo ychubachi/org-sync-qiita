@@ -84,26 +84,13 @@ Emacs,Org"
       (org-entry-put nil "QIITA-ID" id))
     (let ((private (cdr (assoc 'private response))))
       (if (eq private :json-false) (setq private "false") (setq private "true"))
-      (org-entry-put nil "QIITA-PRIVATE" private)))
-  (org-entry-put nil "QIITA-TAGS" (org-sync-qiita--tags-to-string
-                                   (cdr (assoc 'tags response))))
-  (org-entry-put nil "QIITA-URL" (cdr (assoc 'url response)))
-  (message "org-sync-qiita: Properties updated"))
-
-;; (org-sync-qiita--api-items-post "てすとTest from Emacs 9"
-;;                                 "# はじめに\n# つぎに\n"
-;;                                 '[(("name" . "Emacs")) (("name" . "org-mode"))]
-;;                                 t
-;;                                 #'org-sync-qiita--call-back)
-
-;; To find ancestor which has the property defined.
-;; https://github.com/yyr/org-mode/blob/d8494b5668ad4d4e68e83228ae8451eaa01d2220/lisp/org.el#L15974
-;;
-;; (let ((id (org-entry-get nil "QIITA-ID" t)))
-;;   )
-;; (while t
-;;   (org-back-to-heading t)
-;;   )
+      (org-entry-put nil "QIITA-PRIVATE" private))
+    (org-entry-put nil "QIITA-TAGS" (org-sync-qiita--tags-to-string
+                                     (cdr (assoc 'tags response))))
+    (org-entry-put nil "QIITA-URL" (cdr (assoc 'url response)))
+    (org-back-to-heading)
+    (org-set-tags "Qiita"))
+  (message "記事の投稿が完了しました"))
 
 (defun org-sync-qiita-at-point ()
   "Orgで書いた記事をQiitaに投稿します。更新もできます。"
@@ -142,7 +129,9 @@ Emacs,Org"
   (mapc (lambda (x)
           (if (string-match "^QIITA-" (car x))
               (org-entry-delete nil (car x))))
-        (org-entry-properties nil)))
+        (org-entry-properties nil))
+  (org-back-to-heading)
+    (org-set-tags nil))
 
 (defun org-sync-qiita-qmd ()
   (interactive)
