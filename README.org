@@ -3,7 +3,59 @@
 * org-sync-qiita
 Emacs Orgで作成した記事を一瞬でQiitaに投稿するコマンドです。
 
-* 設定方法
+* 利用のイメージ
+
+** アクセストークンの取得する
+こちらのページからアクセストークンを取得します。
+- [[https://qiita.com/settings/tokens/new][アクセストークンの発行]]
+
+手順は次のとおりです。
+- 説明に「org-sync-qiita」と書く
+- スコープは「read_qiita」と「write_qiita」
+- 「発行する」ボタンを押す
+- アクセストークンが表示されるので、 +復活の呪文のごとく紙にメモする+ クリップボードにコピーしておきましょう。
+
+** 記事を書く
+Emacsを使い、次のようにOrgで記事を書きます。
+
+#+begin_src org
+  ,* 記事のタイトル
+  記事の本文です。
+#+end_src
+
+カーソルをヘッドライン（*印の行）に合わせて ~M-x org-sync-qiita-at-point~ と打ちます。
+
+ミニバッファにアクセストークンを入力します。
+
+#+begin_example
+Qiita access-token: xxxxxxxxxxx （←Qiitaのアクセストークン）
+#+end_example
+
+GPGで暗号化して保存するため、パスワードを聞かれますので任意のものを入力してください。
+
+その後、次の通りヘッドラインにプロパティが追加されます。
+
+#+begin_src org
+  ,* 記事のタイトル
+  :PROPERTIES:
+  :QIITA-ID: 684fxxxxxd6a9xxxxx3d
+  :QIITA-PRIVATE: true
+  :QIITA-TAGS: org
+  :QIITA-URL: https://qiita.com/ychubachi/private/684fxxxxxd6a9xxxxx3d
+  :END:
+
+  記事の本文です。
+#+end_src
+
+「QIITA-URL」プロパティのリンクを開くと「限定公開」で記事が投稿できていることが分かります。
+
+** 記事を更新する
+
+その後、本文を執筆し、再度 ~M-x org-sync-qiita-at-point~ を実行すると記事が更新されます。
+
+タグはディフォルトで「org」が付きます。変更するには「QIITA-TAGS」にカンマ区切りで入力してください。
+
+* 導入方法
 
 init.elに次の設定を行ってください。MELPA等に登録していないので、GitHubから
 ダウンロードしてください。
@@ -29,14 +81,6 @@ init.elに次の設定を行ってください。MELPA等に登録していな�
 #+RESULTS:
 : org-sync-qiita
 
-* 簡単な使い方
-** 事前準備
-  こちらのページからアクセストークンを取得します。
-  - [[https://qiita.com/settings/tokens/new][アクセストークンの発行]]
-
-  手順は次のとおりです。
-  - 説明に「org-sync-qiita」と書く
-  - スコープは「read_qiita」と「write_qiita」
-  - 「発行する」ボタンを押す
-  - アクセストークンが表示されるので、 +復活の呪文のごとく紙にメモする+
-      クリップボードにコピーしましょう。
+* 制限事項
+- 一度公開したものを限定公開には戻せません（APIの制約）。
+- twitterへの自動投稿には対応していません。
