@@ -99,6 +99,13 @@ init.elに次の設定を行ってください。MELPA等に登録していな�
 
 変更したい場合、変数 ~org-sync-qiita-access-token-file~ を変えてください。
 
+このファイルはGnuPGで暗号化されます。
+次の設定を行うと、パスワードをEmacsのミニバッファで入力でき便利です。
+
+#+begin_src emacs-lisp
+  (setq epg-pinentry-mode 'loopback)
+#+end_src
+
 * 制限事項
 - 一度公開したものを限定公開には戻せません。
   - [[https://help.qiita.com/ja/articles/qiita-private-article][※記事を限定共有から公開することは出来ますが、一旦投稿した記事を限定共有にすることは出来ません。]]
